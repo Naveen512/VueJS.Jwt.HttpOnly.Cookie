@@ -1,25 +1,26 @@
 import axios from "axios";
+import jwtInterceptor from '../../shared/jwt.interceptor'
 
 const state = () => ({
   loginApiStatus: "",
-  userProfile:{
-    id:0,
-    lastName:"",
-    firstName:"",
-    email:"",
-    phone:"",
+  userProfile: {
+    id: 0,
+    lastName: "",
+    firstName: "",
+    email: "",
+    phone: "",
   },
-  logOut:false
+  logOut: false
 });
 
 const getters = {
   getLoginApiStatus(state) {
     return state.loginApiStatus;
   },
-  getUserProfile(state){
+  getUserProfile(state) {
     return state.userProfile;
   },
-  getLogout(state){
+  getLogout(state) {
     return state.logOut;
   }
 };
@@ -27,44 +28,54 @@ const getters = {
 const actions = {
   async loginApi({ commit }, payload) {
     const response = await axios
-      .post("http://localhost:3000/auth/login", payload,{withCredentials: true, credentials: 'include'})
+      .post("http://localhost:3000/auth/login", payload, {
+        withCredentials: true,
+        credentials: "include",
+      })
       .catch((err) => {
         console.log(err);
       });
 
     if (response && response.data) {
+      localStorage.setItem("isAuthenticated", "true");
       commit("setLoginApiStatus", "success");
     } else {
       commit("setLoginApiStatus", "failed");
     }
   },
 
-  async userProfile({commit}){
-      const response = await axios
-      .get("http://localhost:3000/user-profile",{withCredentials: true, credentials: 'include'})
+  async userProfile({ commit }) {
+    const response = await jwtInterceptor
+      .get("http://localhost:3000/user-profile", {
+        withCredentials: true,
+        credentials: "include",
+      })
       .catch((err) => {
         console.log(err);
       });
 
-      if(response && response.data){
-        commit("setUserProfile", response.data)
-      }
+    if (response && response.data) {
+      commit("setUserProfile", response.data);
+    }
   },
 
-  async userLogout({commit}){
+  async userLogout({ commit }) {
     const response = await axios
-      .get("http://localhost:3000/logout",{withCredentials: true, credentials: 'include'})
+      .get("http://localhost:3000/logout", {
+        withCredentials: true,
+        credentials: "include",
+      })
       .catch((err) => {
         console.log(err);
       });
 
-      if(response && response.data){
-        commit("setLogout", true)
-      }
-      else{
-        commit("setLogout", false)
-      }
-  }
+    if (response && response.data) {
+      commit("setLogout", true);
+      localStorage.removeItem("isAuthenticated");
+    } else {
+      commit("setLogout", false);
+    }
+  },
 };
 
 const mutations = {
@@ -72,18 +83,18 @@ const mutations = {
     state.loginApiStatus = data;
   },
 
-  setUserProfile(state, data){
+  setUserProfile(state, data) {
     const userProfile = {
-      id:data.id,
+      id: data.id,
       lastName: data.lastName,
       firstName: data.firstName,
       email: data.email,
       phone: data.phone,
     };
-    state.userProfile = userProfile
+    state.userProfile = userProfile;
   },
 
-  setLogout(state, payload){
+  setLogout(state, payload) {
     state.logOut = payload;
   }
 };
